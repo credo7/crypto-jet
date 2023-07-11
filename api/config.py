@@ -2,9 +2,9 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    api_port: str
+    api_port: int
     database_hostname: str
-    database_port: str
+    database_port: int
     database_password: str
     database_name: str
     database_username: str
@@ -14,7 +14,6 @@ class Settings(BaseSettings):
     rabbitmq_host: str
     rabbitmq_port: int
     welcome_queue_name: str
-    jwt_cookie_name: str
 
     @property
     def database_url(self):

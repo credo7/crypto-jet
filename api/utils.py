@@ -36,11 +36,11 @@ def set_jwt_cookie(response: Response, user: User):
     token_data = {'id': str(user.id), 'email': user.email, 'username': user.username}
     access_token = create_access_token(token_data)
     response.set_cookie(
-        key=settings.jwt_cookie_name,
+        key='access_token',
         value=access_token,
         max_age=settings.access_token_expire_minutes * 60,
         httponly=True,
-        secure=True,
+        # secure=True,
     )
 
 
@@ -62,7 +62,7 @@ def create_response_with_jwt_cookie(user: User) -> Response:
     token_data = {'id': str(user.id), 'email': user.email, 'username': user.username}
     access_token = create_access_token(token_data)
     response = Response().set_cookie(
-        key=settings.jwt_cookie_name,
+        key='access_token',
         value=access_token,
         max_age=settings.access_token_expire_minutes * 60,
     )

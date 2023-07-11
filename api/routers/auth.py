@@ -13,8 +13,6 @@ from utils import (
 import database
 import schemas
 import models
-from config import settings
-from oauth2 import create_access_token
 
 
 router = APIRouter(tags=['Authorization'], prefix='/auth')

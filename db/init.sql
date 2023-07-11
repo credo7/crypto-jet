@@ -7,7 +7,8 @@ CREATE TABLE content.usernames (
     created_at TIMESTAMP WITH TIME ZONE,
     updated_at TIMESTAMP WITH TIME ZONE,
     username VARCHAR(255) NOT NULL UNIQUE,
-    taken BOOLEAN DEFAULT FALSE
+    taken BOOLEAN DEFAULT FALSE,
+    is_admin BOOLEAN DEFAULT FALSE
 );
 
 INSERT INTO content.usernames (username) VALUES
