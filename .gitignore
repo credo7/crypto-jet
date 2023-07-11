@@ -6,6 +6,12 @@ __pycache__/
 # C extensions
 *.so
 
+# custom
+db/data
+delete_after.py
+.ds_store
+
+
 # Distribution / packaging
 .Python
 build/

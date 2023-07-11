@@ -1,0 +1,53 @@
+version: '3'
+
+services:
+  db:
+    restart: always
+    container_name: crypto_jet_db
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=${DATABASE_USERNAME}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+      - POSTGRES_DB=${DATABASE_NAME}
+      - TZ=Europe/Moscow
+      - PGTZ=Europe/Moscow
+    volumes:
+      - ./db/data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - ${DATABASE_PORT}:5432
+    command: postgres -c stats_temp_directory=/tmp    
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - 5672:5672
+      - 15672:15672
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+  api:
+    build: ./api
+    ports:
+      - ${API_PORT}:${API_PORT}
+    restart: always
+    container_name: api
+    env_file:
+      - .env
+    depends_on:
+      - db, rabbitmq
+
+  mail_service:
+    build: ./mail_service
+    ports:
+      - ${MAIL_SERVICE_PORT}:${MAIL_SERVICE_PORT}
+    restart: always
+    container_name: mail_service
+    env_file:
+      - .env
+    depends_on:
+      - db, rabbitmq
+
+volumes:
+  rabbitmq_data:
+
