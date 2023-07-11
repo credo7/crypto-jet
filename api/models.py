@@ -21,6 +21,20 @@ class User(Base, TimestampMixin, UUIDMixin):
     username = Column(String(length=25), nullable=False)
     email = Column(String(length=255), unique=True, nullable=False)
     password = Column(String(length=255), nullable=False)
+    is_admin = Column(Boolean, default=False)
+
+    def to_json(self):
+        return {
+            'id': str(self.id),
+            'username': self.username,
+            'email': self.email,
+            'created_at': str(self.created_at),
+            'updated_at': str(self.updated_at),
+        }
+
+    @staticmethod
+    def to_json_list(users):
+        return [user.to_json() for user in users]
 
 
 class Username(Base, TimestampMixin, UUIDMixin):

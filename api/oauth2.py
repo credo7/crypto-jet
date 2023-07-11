@@ -1,8 +1,8 @@
 from datetime import datetime, timedelta
 
-from fastapi import Depends, status, HTTPException
+from fastapi import Depends, status, HTTPException, Cookie
 from fastapi.security import OAuth2PasswordBearer
-from jose import JWTError, jwt
+from jose import jwt
 from sqlalchemy.orm import Session
 
 from database import get_db
@@ -27,40 +27,44 @@ def create_access_token(user_data: dict):
     return encoded_jwt
 
 
-def verify_access_token(token: str, credentials_exception, raise_on_error=True):
+def verify_access_token(token: str) -> schemas.TokenData or None:
     try:
         payload = jwt.decode(
             token, settings.access_token_secret_key, algorithms=[settings.algorithm]
         )
 
-        id: str = payload.get('user_id')
+        id: str = payload.get('id')
+        username: str = payload.get('username')
+        email: str = payload.get('email')
 
-        if id is None:
-            raise credentials_exception
+        token_data = schemas.TokenData(id=id, email=email, username=username)
 
-        token_data = schemas.TokenData(id=id)
+        return token_data
 
-    except JWTError:
-        if raise_on_error:
-            raise credentials_exception
-
-        token_data = None
-
-    return token_data
+    except:
+        return None
 
 
-def get_current_user(
-    token: str = Depends(oauth2_scheme), raise_on_error=True, db: Session = Depends(get_db)
-):
+def get_user_or_raise_exception(
+    access_token: str = Cookie(None),
+    db: Session = Depends(get_db),
+    require_admin: bool = False,
+) -> models.User:
+    if not access_token:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Unauthorized')
 
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail=f'Could not validate credentials',
-        headers={'WWW-Authenticate': 'Bearer'},
-    )
+    token_data = verify_access_token(access_token)
+    if not token_data:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail='Could not validate credentials'
+        )
 
-    token = verify_access_token(token, credentials_exception, raise_on_error=raise_on_error)
+    user = db.query(models.User).filter(models.User.id == token_data.id).first()
 
-    user = db.query(models.User).filter(models.User.id == token.id).first()
+    if require_admin and not user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail='User is not authorized to access this data',
+        )
 
     return user
