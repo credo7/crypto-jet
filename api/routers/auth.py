@@ -6,13 +6,14 @@ from utils import (
     get_available_username,
     generate_password,
     hash,
-    send_welcome_message_with_credentials,
     verify,
     set_jwt_cookie,
 )
+from background_tasks import send_welcome_message_with_credentials
 import database
 import schemas
 import models
+from config import settings
 
 
 router = APIRouter(tags=['Authorization'], prefix='/auth')
@@ -36,7 +37,7 @@ def register(
 
     set_jwt_cookie(response=response, user=new_user)
 
-    send_welcome_message_with_credentials(
+    send_welcome_message_with_credentials.delay(
         username=username, password=password, email=user_create_dto.email
     )
 

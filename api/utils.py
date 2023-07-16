@@ -1,8 +1,6 @@
 import random
 import string
-import json
 
-import pika
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.expression import func
 from fastapi import HTTPException, status, Response
@@ -68,22 +66,3 @@ def create_response_with_jwt_cookie(user: User) -> Response:
     )
 
     return response
-
-
-def send_welcome_message_with_credentials(username: str, password: str, email: str) -> None:
-    send_message_to_rabbitmq(
-        queue_name=settings.welcome_queue_name,
-        message={'username': username, 'password': password, 'email': email},
-    )
-
-
-def send_message_to_rabbitmq(queue_name: str, message) -> None:
-    body = json.dumps(message)
-
-    connection = pika.BlockingConnection(pika.URLParameters(settings.rabbitmq_url))
-    channel = connection.channel()
-    channel.queue_declare(queue=queue_name)
-
-    channel.basic_publish(exchange="", routing_key=queue_name, body=body)
-
-    connection.close()
