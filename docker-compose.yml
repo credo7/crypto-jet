@@ -18,13 +18,19 @@ services:
       - ${DATABASE_PORT}:5432
     command: postgres -c stats_temp_directory=/tmp    
 
-  rabbitmq:
-    image: rabbitmq:3-management
+  redis:
+    image: redis:7
     ports:
-      - 5672:5672
-      - 15672:15672
-    volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
+      - ${REDIS_PORT}:${REDIS_PORT}
+
+  celery-worker:
+    restart: always
+    build: ./api
+    command: celery -A background_tasks:celery_app worker --loglevel=info
+    env_file:
+      - .env
+    depends_on:
+      - redis
 
   api:
     build: ./api
@@ -35,18 +41,7 @@ services:
     env_file:
       - .env
     depends_on:
-      - db, rabbitmq
-
-  mail_service:
-    build: ./mail_service
-    ports:
-      - ${MAIL_SERVICE_PORT}:${MAIL_SERVICE_PORT}
-    restart: always
-    container_name: mail_service
-    env_file:
-      - .env
-    depends_on:
-      - db, rabbitmq
+      - db, redis
   
   nginx:
     image: nginx
@@ -56,7 +51,3 @@ services:
       - .env
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
-
-volumes:
-  rabbitmq_data:
-

@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings
+from pydantic import EmailStr
 
 
 class Settings(BaseSettings):
@@ -11,17 +12,23 @@ class Settings(BaseSettings):
     algorithm: str
     access_token_secret_key: str
     access_token_expire_minutes: int
-    rabbitmq_host: str
-    rabbitmq_port: int
-    welcome_queue_name: str
+    from_email: EmailStr
+    from_email_password: str
+    welcome_subject: str
+    smtp_host: str
+    smtp_port: int
+    redis_password: str
+    redis_host: str
+    redis_port: int
 
     @property
     def database_url(self):
         return f'postgresql://{self.database_username}:{self.database_password}@{self.database_hostname}:{self.database_port}/{self.database_name}'
 
     @property
-    def rabbitmq_url(self):
-        return f'amqp://guest:guest@{settings.rabbitmq_host}:{settings.rabbitmq_port}/'
+    def redis_broker_url(self):
+        # return f'redis://default:{self.redis_password}@{self.redis_host}:{self.redis_port}/0'
+        return f'redis://{self.redis_host}:{self.redis_port}/0'
 
     class Config:
         env_file = '.env'
